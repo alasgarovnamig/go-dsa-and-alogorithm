@@ -1,5 +1,5 @@
 [![GoDoc](https://godoc.org/github.com/alasgarovnamig/go-dsa-and-algorithm?status.svg)](https://pkg.go.dev/github.com/alasgarovnamig/go-dsa-and-algorithm)
-[![Build Status](https://github.com/alasgarovnamig/go-dsa-and-algorithm/workflows/CI/badge.svg)
+[![Build Status](https://github.com/alasgarovnamig/go-dsa-and-algorithm/workflows/CI/badge.svg)]
 [![Go Report Card](https://goreportcard.com/badge/github.com/alasgarovnamig/go-dsa-and-algorithm)](https://goreportcard.com/report/github.com/alasgarovnamig/go-dsa-and-algorithm)
 [![codecov](https://codecov.io/gh/alasgarovnamig/go-dsa-and-algorithm/branch/main/graph/badge.svg)](https://codecov.io/gh/alasgarovnamig/go-dsa-and-algorithm)
 [![GitHub release](https://img.shields.io/github/release/alasgarovnamig/go-dsa-and-algorithm.svg)](https://github.com/alasgarovnamig/go-dsa-and-algorithm/releases/)
