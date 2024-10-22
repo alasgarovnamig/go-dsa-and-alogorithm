@@ -47,28 +47,38 @@ func (s *LinkedHashSet[T]) Size() int {
 	return len(s.data)
 }
 
+// IsEmpty checks if the LinkedHashSet is empty.
 func (s *LinkedHashSet[T]) IsEmpty() bool {
-	return s.Size() == 0
+	return len(s.data) == 0
 }
+
+// Clear removes all elements from the LinkedHashSet.
 func (s *LinkedHashSet[T]) Clear() {
 	s.data = make(map[T]*list.Element)
+	s.order.Init()
 }
+
+// Values returns a slice of all elements in the LinkedHashSet.
 func (s *LinkedHashSet[T]) Values() []T {
-	values := make([]T, s.Size())
-	count := 0
-	for item := range s.data {
-		values[count] = item
-		count++
+	values := make([]T, 0, len(s.data))
+	for elem := s.order.Front(); elem != nil; elem = elem.Next() {
+		values = append(values, elem.Value.(T))
 	}
 	return values
 }
+
+// ToString returns a string representation of the LinkedHashSet.
 func (s *LinkedHashSet[T]) ToString() string {
-	str := "LinkedHashSet:["
-	items := []string{}
-	for k := range s.data {
-		items = append(items, fmt.Sprintf("%v", k))
+	var sb strings.Builder
+	sb.WriteString("[")
+	first := true
+	for elem := s.order.Front(); elem != nil; elem = elem.Next() {
+		if !first {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(fmt.Sprintf("%v", elem.Value))
+		first = false
 	}
-	str += strings.Join(items, ", ")
-	str += "]"
-	return str
+	sb.WriteString("]")
+	return sb.String()
 }

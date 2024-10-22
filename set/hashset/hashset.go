@@ -6,29 +6,50 @@ import (
 )
 
 // HashSet is a simple set implemented using a map.
-type HashSet[T comparable] struct {
-	data map[T]struct{}
+type HashSet[T any] struct {
+	data    map[string]T
+	equalFn func(T, T) bool
+	hashFn  func(T) string
 }
 
-// NewHashSet initializes a new HashSet.
-func NewHashSet[T comparable]() *HashSet[T] {
-	return &HashSet[T]{data: make(map[T]struct{})}
+// New initializes a new HashSet.
+func NewHashSet[T any](equalFn func(T, T) bool, hashFn func(T) string, data ...T) *HashSet[T] {
+	hashSet := &HashSet[T]{
+		data:    make(map[string]T),
+		equalFn: equalFn,
+		hashFn:  hashFn,
+	}
+	if len(data) > 0 {
+		hashSet.Add(data...)
+	}
+	return hashSet
 }
 
 // Add inserts a value into the HashSet.
-func (s *HashSet[T]) Add(value T) {
-	s.data[value] = struct{}{}
+func (s *HashSet[T]) Add(data ...T) {
+	for _, v := range data {
+		hash := s.hashFn(v)
+		s.data[hash] = v
+	}
 }
 
 // Remove deletes a value from the HashSet.
-func (s *HashSet[T]) Remove(value T) {
-	delete(s.data, value)
+func (s *HashSet[T]) Remove(data ...T) {
+	for _, v := range data {
+		hash := s.hashFn(v)
+		delete(s.data, hash)
+	}
 }
 
 // Contains checks if a value exists in the HashSet.
-func (s *HashSet[T]) Contains(value T) bool {
-	_, exists := s.data[value]
-	return exists
+func (s *HashSet[T]) Contains(data ...T) bool {
+	for _, v := range data {
+		hash := s.hashFn(v)
+		if _, contains := s.data[hash]; !contains {
+			return false
+		}
+	}
+	return true
 }
 
 // Size returns the number of elements in the HashSet.
@@ -36,28 +57,38 @@ func (s *HashSet[T]) Size() int {
 	return len(s.data)
 }
 
+// IsEmpty checks if the HashSet is empty.
 func (s *HashSet[T]) IsEmpty() bool {
-	return s.Size() == 0
+	return len(s.data) == 0
 }
+
+// Clear removes all elements from the HashSet.
 func (s *HashSet[T]) Clear() {
-	s.data = make(map[T]struct{})
+	s.data = make(map[string]T)
 }
+
+// Values returns a slice of all elements in the HashSet.
 func (s *HashSet[T]) Values() []T {
-	values := make([]T, s.Size())
-	count := 0
-	for item := range s.data {
-		values[count] = item
-		count++
+	values := make([]T, 0, len(s.data))
+	for _, value := range s.data {
+		values = append(values, value)
 	}
 	return values
 }
+
+// ToString returns a string representation of the HashSet.
 func (s *HashSet[T]) ToString() string {
-	str := "HashSet:["
-	items := []string{}
-	for k := range s.data {
-		items = append(items, fmt.Sprintf("%v", k))
+	var sb strings.Builder
+	sb.WriteString("[")
+	first := true
+	for _, value := range s.Values() {
+		if !first {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(fmt.Sprintf("%v", value))
+		first = false
 	}
-	str += strings.Join(items, ", ")
-	str += "]"
-	return str
+	sb.WriteString("]")
+	return sb.String()
+
 }
