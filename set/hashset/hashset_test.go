@@ -1,244 +1,66 @@
-package hashset
+package hashset_test
 
 import (
-	"fmt"
 	"testing"
+
+	"github.com/alasgarovnamig/go-dsa-and-algorithm/set/hashset"
+	"github.com/alasgarovnamig/go-dsa-and-algorithm/set/mocks"
+	"github.com/stretchr/testify/assert"
 )
 
-// Equal function for integers
-func intEqual(a, b int) bool {
-	return a == b
-}
+func TestHashSet_BasicOperations(t *testing.T) {
+	// HashSet oluştur
+	hashSet := hashset.NewHashSet[*mocks.MockSetable]()
 
-// Hash function for integers
-func intHash(v int) string {
-	return fmt.Sprintf("%d", v)
-}
+	// MockSetable nesneleri oluştur
+	item1 := mocks.NewMockSetable("item1")
+	item2 := mocks.NewMockSetable("item2")
+	item3 := mocks.NewMockSetable("item3")
 
-// Equal function for strings
-func stringEqual(a, b string) bool {
-	return a == b
-}
+	// Add metodunu test et
+	hashSet.Add(item1, item2)
+	assert.Equal(t, 2, hashSet.Size())
+	assert.True(t, hashSet.Contains(item1))
+	assert.True(t, hashSet.Contains(item2))
+	assert.False(t, hashSet.Contains(item3))
 
-// Hash function for strings
-func stringHash(v string) string {
-	return v
-}
+	// Remove metodunu test et
+	hashSet.Remove(item1)
+	assert.False(t, hashSet.Contains(item1))
+	assert.True(t, hashSet.Contains(item2))
+	assert.Equal(t, 1, hashSet.Size())
 
-func TestNewHashSet(t *testing.T) {
-	// Initialize a new integer HashSet
-	set := NewHashSet(intEqual, intHash, 1, 2, 3)
-
-	// Check initial size
-	if set.Size() != 3 {
-		t.Errorf("Expected size to be 3, got %d", set.Size())
-	}
-
-	// Check if elements exist
-	if !set.Contains(1, 2, 3) {
-		t.Errorf("Expected set to contain 1, 2, and 3")
-	}
-
-	// Check if an element doesn't exist
-	if set.Contains(4) {
-		t.Errorf("Expected set to not contain 4")
-	}
-}
-
-func TestHashSet_Add(t *testing.T) {
-	set := NewHashSet(intEqual, intHash)
-
-	// Add elements
-	set.Add(1, 2, 3)
-
-	// Check size after adding elements
-	if set.Size() != 3 {
-		t.Errorf("Expected size to be 3, got %d", set.Size())
-	}
-
-	// Check if elements exist
-	if !set.Contains(1, 2, 3) {
-		t.Errorf("Expected set to contain 1, 2, and 3")
-	}
-
-	// Add duplicate elements
-	set.Add(2, 3)
-
-	// Check size to ensure duplicates are not added
-	if set.Size() != 3 {
-		t.Errorf("Expected size to remain 3, got %d", set.Size())
-	}
-}
-
-func TestHashSet_Remove(t *testing.T) {
-	set := NewHashSet(intEqual, intHash, 1, 2, 3)
-
-	// Remove elements
-	set.Remove(2)
-
-	// Check size after removal
-	if set.Size() != 2 {
-		t.Errorf("Expected size to be 2, got %d", set.Size())
-	}
-
-	// Check if element was removed
-	if set.Contains(2) {
-		t.Errorf("Expected set to not contain 2")
-	}
-
-	// Remove non-existing element
-	set.Remove(4)
-
-	// Ensure size doesn't change
-	if set.Size() != 2 {
-		t.Errorf("Expected size to remain 2, got %d", set.Size())
-	}
-}
-
-func TestHashSet_Contains(t *testing.T) {
-	set := NewHashSet(stringEqual, stringHash)
-
-	// Add elements
-	set.Add("a", "b", "c")
-
-	// Check if elements exist
-	if !set.Contains("a", "b", "c") {
-		t.Errorf("Expected set to contain 'a', 'b', and 'c'")
-	}
-
-	// Check for non-existing element
-	if set.Contains("d") {
-		t.Errorf("Expected set to not contain 'd'")
-	}
-}
-
-func TestHashSet_Size(t *testing.T) {
-	set := NewHashSet(intEqual, intHash)
-
-	// Check initial size
-	if set.Size() != 0 {
-		t.Errorf("Expected initial size to be 0, got %d", set.Size())
-	}
-
-	// Add elements
-	set.Add(1, 2, 3)
-
-	// Check size after adding elements
-	if set.Size() != 3 {
-		t.Errorf("Expected size to be 3, got %d", set.Size())
-	}
-
-	// Remove an element
-	set.Remove(2)
-
-	// Check size after removal
-	if set.Size() != 2 {
-		t.Errorf("Expected size to be 2, got %d", set.Size())
-	}
-}
-
-func TestHashSet_IsEmpty(t *testing.T) {
-	set := NewHashSet(intEqual, intHash)
-
-	// Check if set is empty initially
-	if !set.IsEmpty() {
-		t.Errorf("Expected set to be empty")
-	}
-
-	// Add elements
-	set.Add(1)
-
-	// Check if set is not empty
-	if set.IsEmpty() {
-		t.Errorf("Expected set to not be empty")
-	}
-
-	// Clear the set
-	set.Clear()
-
-	// Check if set is empty again
-	if !set.IsEmpty() {
-		t.Errorf("Expected set to be empty after clearing")
-	}
-}
-
-func TestHashSet_Clear(t *testing.T) {
-	set := NewHashSet(intEqual, intHash, 1, 2, 3)
-
-	// Clear the set
-	set.Clear()
-
-	// Check if set is empty
-	if !set.IsEmpty() {
-		t.Errorf("Expected set to be empty after clearing")
-	}
-
-	// Check size after clearing
-	if set.Size() != 0 {
-		t.Errorf("Expected size to be 0 after clearing, got %d", set.Size())
-	}
-}
-
-func TestHashSet_Values(t *testing.T) {
-	set := NewHashSet(intEqual, intHash, 1, 2, 3)
-
-	// Get values
-	values := set.Values()
-
-	// Create a map for validation
-	expected := map[int]bool{1: true, 2: true, 3: true}
-
-	// Check length of values slice
-	if len(values) != 3 {
-		t.Errorf("Expected values length to be 3, got %d", len(values))
-	}
-
-	// Check if all values are present
-	for _, v := range values {
-		if !expected[v] {
-			t.Errorf("Unexpected value: %d", v)
-		}
-	}
+	// Clear metodunu test et
+	hashSet.Clear()
+	assert.True(t, hashSet.IsEmpty())
+	assert.Equal(t, 0, hashSet.Size())
 }
 
 func TestHashSet_ToString(t *testing.T) {
-	set := NewHashSet(intEqual, intHash, 1, 2, 3)
+	hashSet := hashset.NewHashSet[*mocks.MockSetable]()
+	item1 := mocks.NewMockSetable("item1")
+	item2 := mocks.NewMockSetable("item2")
 
-	// Get string representation
-	str := set.ToString()
+	// Set'e öğeler ekle
+	hashSet.Add(item1, item2)
 
-	// Check if string representation is correct
-	if str != "[1, 2, 3]" && str != "[1, 3, 2]" && str != "[2, 1, 3]" && str != "[2, 3, 1]" && str != "[3, 1, 2]" && str != "[3, 2, 1]" {
-		t.Errorf("Unexpected string representation: %s", str)
-	}
+	// ToString metodunu test et
+	str := hashSet.ToString()
+	assert.Contains(t, str, "item1")
+	assert.Contains(t, str, "item2")
 }
 
-func TestHashSet_Add_Remove_Multiple(t *testing.T) {
-	set := NewHashSet(intEqual, intHash)
+func TestHashSet_ToSlice(t *testing.T) {
+	hashSet := hashset.NewHashSet[*mocks.MockSetable]()
+	item1 := mocks.NewMockSetable("item1")
+	item2 := mocks.NewMockSetable("item2")
 
-	// Add multiple elements
-	set.Add(1, 2, 3, 4, 5)
+	// Set'e öğeler ekle
+	hashSet.Add(item1, item2)
 
-	// Check size after adding multiple elements
-	if set.Size() != 5 {
-		t.Errorf("Expected size to be 5, got %d", set.Size())
-	}
-
-	// Remove multiple elements
-	set.Remove(1, 2)
-
-	// Check size after removing multiple elements
-	if set.Size() != 3 {
-		t.Errorf("Expected size to be 3, got %d", set.Size())
-	}
-
-	// Check if removed elements are not present
-	if set.Contains(1, 2) {
-		t.Errorf("Expected set to not contain 1 and 2")
-	}
-
-	// Check if remaining elements are present
-	if !set.Contains(3, 4, 5) {
-		t.Errorf("Expected set to contain 3, 4, and 5")
-	}
+	// ToSlice metodunu test et
+	slice := hashSet.ToSlice()
+	assert.Len(t, slice, 2)
+	assert.Contains(t, slice, item1)
+	assert.Contains(t, slice, item2)
 }

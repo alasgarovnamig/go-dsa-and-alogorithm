@@ -1,62 +1,53 @@
 package hashset
 
 import (
-	"fmt"
 	"strings"
 	"sync"
+
+	"github.com/alasgarovnamig/go-dsa-and-algorithm/set"
 )
 
-// SyncHashSet is a concurrent set implemented using a map and mutex.
-type SyncHashSet[T any] struct {
-	data    map[string]T
-	equalFn func(T, T) bool
-	hashFn  func(T) string
-	mu      sync.RWMutex
+// SyncHashSet is a thread-safe implementation of the HashSet.
+// It uses a read-write mutex to allow concurrent access.
+type SyncHashSet[T set.Setable] struct {
+	elements map[string]T
+	mu       sync.RWMutex
 }
 
-// NewSyncHashSet initializes a new SyncHashSet.
-func NewSyncHashSet[T any](equalFn func(T, T) bool, hashFn func(T) string, data ...T) *SyncHashSet[T] {
-	hashSet := &SyncHashSet[T]{
-		data:    make(map[string]T),
-		equalFn: equalFn,
-		hashFn:  hashFn,
+// NewSyncHashSet creates and returns a new instance of SyncHashSet.
+func NewSyncHashSet[T set.Setable]() *SyncHashSet[T] {
+	return &SyncHashSet[T]{
+		elements: make(map[string]T),
 	}
-	if len(data) > 0 {
-		hashSet.Add(data...)
-	}
-	return hashSet
 }
 
-// Add inserts a value into the SyncHashSet.
-func (s *SyncHashSet[T]) Add(data ...T) {
+// Add inserts one or more elements into the SyncHashSet.
+func (s *SyncHashSet[T]) Add(values ...T) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	for _, v := range data {
-		hash := s.hashFn(v)
-		s.data[hash] = v
+	for _, value := range values {
+		key := value.Hash()
+		s.elements[key] = value
 	}
 }
 
-// Remove deletes a value from the SyncHashSet.
-func (s *SyncHashSet[T]) Remove(data ...T) {
+// Remove deletes one or more elements from the SyncHashSet.
+func (s *SyncHashSet[T]) Remove(values ...T) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	for _, v := range data {
-		hash := s.hashFn(v)
-		delete(s.data, hash)
+	for _, value := range values {
+		key := value.Hash()
+		delete(s.elements, key)
 	}
 }
 
-// Contains checks if a value exists in the SyncHashSet.
-func (s *SyncHashSet[T]) Contains(data ...T) bool {
+// Contains checks if all specified elements are in the SyncHashSet.
+func (s *SyncHashSet[T]) Contains(values ...T) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
-	for _, v := range data {
-		hash := s.hashFn(v)
-		if _, contains := s.data[hash]; !contains {
+	for _, value := range values {
+		key := value.Hash()
+		if _, exists := s.elements[key]; !exists {
 			return false
 		}
 	}
@@ -67,50 +58,46 @@ func (s *SyncHashSet[T]) Contains(data ...T) bool {
 func (s *SyncHashSet[T]) Size() int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return len(s.data)
+	return len(s.elements)
 }
 
 // IsEmpty checks if the SyncHashSet is empty.
 func (s *SyncHashSet[T]) IsEmpty() bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return len(s.data) == 0
+	return s.Size() == 0
 }
 
 // Clear removes all elements from the SyncHashSet.
 func (s *SyncHashSet[T]) Clear() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.data = make(map[string]T)
-}
-
-// Values returns a slice of all elements in the SyncHashSet.
-func (s *SyncHashSet[T]) Values() []T {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	values := make([]T, 0, len(s.data))
-	for _, value := range s.data {
-		values = append(values, value)
-	}
-	return values
+	s.elements = make(map[string]T)
 }
 
 // ToString returns a string representation of the SyncHashSet.
 func (s *SyncHashSet[T]) ToString() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
 	var sb strings.Builder
-	sb.WriteString("[")
+	sb.WriteString("SyncHashSet{")
 	first := true
-	for _, value := range s.Values() {
+	for _, value := range s.elements {
 		if !first {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(fmt.Sprintf("%v", value))
+		sb.WriteString(value.Hash())
 		first = false
 	}
-	sb.WriteString("]")
+	sb.WriteString("}")
 	return sb.String()
+}
+
+// ToSlice returns a slice containing all elements in the SyncHashSet.
+func (s *SyncHashSet[T]) ToSlice() []T {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	slice := make([]T, 0, len(s.elements))
+	for _, value := range s.elements {
+		slice = append(slice, value)
+	}
+	return slice
 }

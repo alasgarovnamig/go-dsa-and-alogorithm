@@ -1,51 +1,46 @@
 package hashset
 
 import (
-	"fmt"
 	"strings"
+
+	"github.com/alasgarovnamig/go-dsa-and-algorithm/set"
 )
 
-// HashSet is a simple set implemented using a map.
-type HashSet[T any] struct {
-	data    map[string]T
-	equalFn func(T, T) bool
-	hashFn  func(T) string
+// HashSet implements the Set interface using a map for uniqueness.
+// It maintains unique elements in no particular order.
+type HashSet[T set.Setable] struct {
+	elements map[string]T
 }
 
-// New initializes a new HashSet.
-func NewHashSet[T any](equalFn func(T, T) bool, hashFn func(T) string, data ...T) *HashSet[T] {
-	hashSet := &HashSet[T]{
-		data:    make(map[string]T),
-		equalFn: equalFn,
-		hashFn:  hashFn,
-	}
-	if len(data) > 0 {
-		hashSet.Add(data...)
-	}
-	return hashSet
-}
-
-// Add inserts a value into the HashSet.
-func (s *HashSet[T]) Add(data ...T) {
-	for _, v := range data {
-		hash := s.hashFn(v)
-		s.data[hash] = v
+// NewHashSet creates and returns a new instance of HashSet.
+func NewHashSet[T set.Setable]() *HashSet[T] {
+	return &HashSet[T]{
+		elements: make(map[string]T),
 	}
 }
 
-// Remove deletes a value from the HashSet.
-func (s *HashSet[T]) Remove(data ...T) {
-	for _, v := range data {
-		hash := s.hashFn(v)
-		delete(s.data, hash)
+// Add inserts one or more elements into the HashSet.
+// Duplicate elements (based on Hash) are ignored.
+func (s *HashSet[T]) Add(values ...T) {
+	for _, value := range values {
+		key := value.Hash()
+		s.elements[key] = value // Overwrite if already exists
 	}
 }
 
-// Contains checks if a value exists in the HashSet.
-func (s *HashSet[T]) Contains(data ...T) bool {
-	for _, v := range data {
-		hash := s.hashFn(v)
-		if _, contains := s.data[hash]; !contains {
+// Remove deletes one or more elements from the HashSet.
+func (s *HashSet[T]) Remove(values ...T) {
+	for _, value := range values {
+		key := value.Hash()
+		delete(s.elements, key)
+	}
+}
+
+// Contains checks if all specified elements are present in the HashSet.
+func (s *HashSet[T]) Contains(values ...T) bool {
+	for _, value := range values {
+		key := value.Hash()
+		if _, exists := s.elements[key]; !exists {
 			return false
 		}
 	}
@@ -54,41 +49,40 @@ func (s *HashSet[T]) Contains(data ...T) bool {
 
 // Size returns the number of elements in the HashSet.
 func (s *HashSet[T]) Size() int {
-	return len(s.data)
+	return len(s.elements)
 }
 
-// IsEmpty checks if the HashSet is empty.
+// IsEmpty checks if the HashSet has no elements.
 func (s *HashSet[T]) IsEmpty() bool {
-	return len(s.data) == 0
+	return len(s.elements) == 0
 }
 
 // Clear removes all elements from the HashSet.
 func (s *HashSet[T]) Clear() {
-	s.data = make(map[string]T)
-}
-
-// Values returns a slice of all elements in the HashSet.
-func (s *HashSet[T]) Values() []T {
-	values := make([]T, 0, len(s.data))
-	for _, value := range s.data {
-		values = append(values, value)
-	}
-	return values
+	s.elements = make(map[string]T)
 }
 
 // ToString returns a string representation of the HashSet.
 func (s *HashSet[T]) ToString() string {
 	var sb strings.Builder
-	sb.WriteString("[")
+	sb.WriteString("HashSet{")
 	first := true
-	for _, value := range s.Values() {
+	for _, value := range s.elements {
 		if !first {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(fmt.Sprintf("%v", value))
+		sb.WriteString(value.Hash())
 		first = false
 	}
-	sb.WriteString("]")
+	sb.WriteString("}")
 	return sb.String()
+}
 
+// ToSlice returns a slice containing all elements in the HashSet.
+func (s *HashSet[T]) ToSlice() []T {
+	slice := make([]T, 0, len(s.elements))
+	for _, value := range s.elements {
+		slice = append(slice, value)
+	}
+	return slice
 }
